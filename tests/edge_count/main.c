@@ -1,0 +1,48 @@
+/**
+ * @file tests/edge_count/main.c
+ * @ref test-edge_count
+ *
+ * @page test-edge_count edge_count
+ *
+ * @todo Docs for test-edge_count
+ *
+ * @see tests/edge_count/main.c
+ */
+#include <xtf.h>
+
+#define TRACE_BUFFER_SIZE 10000
+
+const char test_title[] = "Test edge_count";
+
+void test_main(void)
+{
+    uint64_t arr[TRACE_BUFFER_SIZE];
+
+//    printk("Start tracing: %ld\n",
+//        hypercall_edge_trace(DOMID_SELF, 0, TRACE_BUFFER_SIZE, arr));
+//
+//    hypercall_xen_version(0, NULL);
+//
+//    printk("Stop tracing: %ld\n",
+//        hypercall_edge_trace(DOMID_SELF, 1, TRACE_BUFFER_SIZE, arr));
+
+    printk("start \n");
+    hypercall_edge_trace(DOMID_SELF, 0, TRACE_BUFFER_SIZE, arr);
+    hypercall_xen_version(0, NULL);
+    hypercall_xen_version(0, NULL);
+    hypercall_xen_version(0, NULL);
+    long ans = hypercall_edge_trace(DOMID_SELF, 1, TRACE_BUFFER_SIZE, arr);
+    printk("stop: %ld \n", ans);
+
+    xtf_success(NULL);
+}
+
+/*
+ * Local variables:
+ * mode: C
+ * c-file-style: "BSD"
+ * c-basic-offset: 4
+ * tab-width: 4
+ * indent-tabs-mode: nil
+ * End:
+ */
