@@ -10,7 +10,7 @@
  */
 #include <xtf.h>
 
-#define TRACE_BUFFER_SIZE 10000
+#define TRACE_BUFFER_SIZE 500
 
 const char test_title[] = "Test edge_count";
 
@@ -18,20 +18,21 @@ void test_main(void)
 {
     uint64_t arr[TRACE_BUFFER_SIZE];
 
-//    printk("Start tracing: %ld\n",
-//        hypercall_edge_trace(DOMID_SELF, 0, TRACE_BUFFER_SIZE, arr));
-//
-//    hypercall_xen_version(0, NULL);
-//
-//    printk("Stop tracing: %ld\n",
-//        hypercall_edge_trace(DOMID_SELF, 1, TRACE_BUFFER_SIZE, arr));
+    printk("%d Start tracing: %ld\n", DOMID_SELF,
+        hypercall_edge_trace(DOMID_SELF, 0, TRACE_BUFFER_SIZE, arr));
 
-    printk("start \n");
-    hypercall_edge_trace(DOMID_SELF, 0, TRACE_BUFFER_SIZE, arr);
-    hypercall_xen_version(0, NULL);
-    hypercall_xen_version(0, NULL);
-    hypercall_xen_version(0, NULL);
+//    hypercall_xen_version(0, NULL);
+
+//   printk("Stop tracing: %ld\n",
+ //       hypercall_edge_trace(DOMID_SELF, 1, TRACE_BUFFER_SIZE, arr));
+
+
     long ans = hypercall_edge_trace(DOMID_SELF, 1, TRACE_BUFFER_SIZE, arr);
+
+    for(long i = 0; i < ans; ++i) {
+        printk("%" PRIx64 "\n", arr[i]);
+    }
+
     printk("stop: %ld \n", ans);
 
     xtf_success(NULL);
