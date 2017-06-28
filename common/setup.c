@@ -25,12 +25,12 @@ void __noreturn xtf_main(void)
     printk("Environment: %s\n", environment_description);
     printk("%s\n", test_title);
 
-    test_setup();
+//    test_setup();
 
-    if ( !xtf_status_reported() )
-    {
+//    if ( !xtf_status_reported() )
+//    {
         test_main();
-    }
+//    }
 
     /* Report status and exit. */
     xtf_exit();

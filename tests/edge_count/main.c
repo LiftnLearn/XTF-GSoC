@@ -17,6 +17,12 @@ const char test_title[] = "Test edge_count";
 void test_main(void)
 {
     uint64_t arr[TRACE_BUFFER_SIZE];
+        
+    printk("Hello\n");
+
+    while(1) {
+        //readline();
+    }
 
     printk("%d Start tracing: %ld\n", DOMID_SELF,
         hypercall_edge_trace(DOMID_SELF, 0, TRACE_BUFFER_SIZE, arr));

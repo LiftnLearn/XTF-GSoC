@@ -478,7 +478,9 @@ def run_test_console(opts, test):
             print "Executing '%s'" % (" ".join(cmd), )
         raise RunnerError("Failed to unpause VM")
 
-    stdout, _ = console.communicate()
+    while console:
+        print console.stdout.readline()
+#    stdout, _ = console.communicate()
 
     if console.returncode:
         raise RunnerError("Failed to obtain VM console")
