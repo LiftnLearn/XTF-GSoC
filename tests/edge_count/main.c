@@ -16,16 +16,19 @@ const char test_title[] = "Test edge_count";
 
 void test_main(void)
 {
-    uint64_t arr[TRACE_BUFFER_SIZE];
+//    uint64_t arr[TRACE_BUFFER_SIZE];
         
-    printk("Hello\n");
+    int ret;
+    char str[100];
 
-    while(1) {
-        //readline();
+    for(int j = 0; j < 10; ++j) {
+        printk("%u %u\n", ((uint32_t*) str)[0], ((uint32_t*) str)[1]);
+        ret = read(str, 100);
+        printk("%d Read: %s\n", ret, str+8);
     }
 
-    printk("%d Start tracing: %ld\n", DOMID_SELF,
-        hypercall_edge_trace(DOMID_SELF, 0, TRACE_BUFFER_SIZE, arr));
+//    printk("%d Start tracing: %ld\n", DOMID_SELF,
+//        hypercall_edge_trace(DOMID_SELF, 0, TRACE_BUFFER_SIZE, arr));
 
 //    hypercall_xen_version(0, NULL);
 
@@ -33,13 +36,13 @@ void test_main(void)
  //       hypercall_edge_trace(DOMID_SELF, 1, TRACE_BUFFER_SIZE, arr));
 
 
-    long ans = hypercall_edge_trace(DOMID_SELF, 1, TRACE_BUFFER_SIZE, arr);
-
-    for(long i = 0; i < ans; ++i) {
-        printk("%" PRIx64 "\n", arr[i]);
-    }
-
-    printk("stop: %ld \n", ans);
+//    long ans = hypercall_edge_trace(DOMID_SELF, 1, TRACE_BUFFER_SIZE, arr);
+//
+//    for(long i = 0; i < ans; ++i) {
+//        printk("%" PRIx64 "\n", arr[i]);
+//    }
+//
+//    printk("stop: %ld \n", ans);
 
     xtf_success(NULL);
 }
