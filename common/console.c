@@ -43,34 +43,19 @@ static size_t pv_console_write_some(const char *buf, size_t len)
     return s;
 }
 
-static size_t pv_console_read_some(char *buf, size_t len) {
-    //need to poll?
-
-//    hypercall_poll();
-//    HYPERVISOR_sched_op(SCHEDOP_poll, 0);
-//    hypercall_sched_op(SCHEDOP_poll, 0);
+size_t pv_console_read(char *buf, size_t len)
+{
     hypercall_sched_op(3, 0);
 
-    size_t s = 8;
+    size_t s = 0;
     uint32_t cons = pv_ring->in_cons, prod = LOAD_ACQUIRE(&pv_ring->in_prod);
-
-    ((int*) buf)[0] = cons;
-    ((int*) buf)[1] = prod;
-//    buf[2] = pv_ring->out_cons;
-//    buf[3] = pv_ring->out_prod;
-
-//    s = 0;
 
     while ( (s < len) && 0 < ((prod - cons)) )
         buf[s++] = pv_ring->in[cons++ & (sizeof(pv_ring->in) - 1)];
-    
+
     STORE_RELEASE(&pv_ring->in_cons, cons);
 
     return s;
-}
-
-size_t read(char* buf, int size) {
-    return pv_console_read_some(buf, (size_t) size);
 }
 
 /*

@@ -21,10 +21,15 @@ void test_main(void)
     int ret;
     char str[100];
 
-    for(int j = 0; j < 10; ++j) {
-        printk("%u %u\n", ((uint32_t*) str)[0], ((uint32_t*) str)[1]);
-        ret = read(str, 100);
-        printk("%d Read: %s\n", ret, str+8);
+    //for(int j = 0; j < 10; ++j) {
+    //    ret = read(str, 100);
+    //    printk("%u %u\n", ((uint32_t*) str)[0], ((uint32_t*) str)[1]);
+    //    printk("%d Read: %s\n", ret, str+8);
+    //}
+
+    for( int i = 0; i < 10; ++i ) {
+        ret = pv_console_read(str, 100);
+        printk("Hello from the XTF-server: %d\n", ret);
     }
 
 //    printk("%d Start tracing: %ld\n", DOMID_SELF,

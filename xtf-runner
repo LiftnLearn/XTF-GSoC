@@ -462,11 +462,11 @@ def run_test_console(opts, test):
         print stderr
         raise RunnerError("Failed to create VM")
 
-    cmd = ['xl', 'console', '-i',test.vm_name()]
+    cmd = ['xl', 'console', test.vm_name()]
     if not opts.quiet:
         print "Executing '%s'" % (" ".join(cmd), )
 
-    console = Popen(cmd, stdout = PIPE, stdin = PIPE)
+    console = Popen(cmd, stdout = PIPE)
 
     cmd = ['xl', 'unpause', test.vm_name()]
     if not opts.quiet:
@@ -478,10 +478,7 @@ def run_test_console(opts, test):
             print "Executing '%s'" % (" ".join(cmd), )
         raise RunnerError("Failed to unpause VM")
 
-    while console:
-        print console.stdout.readline()
-        console.stdin.write("hello")
-#    stdout, _ = console.communicate()
+    stdout, _ = console.communicate()
 
     if console.returncode:
         raise RunnerError("Failed to obtain VM console")
