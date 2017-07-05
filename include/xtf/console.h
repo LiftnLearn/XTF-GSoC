@@ -6,6 +6,7 @@
 
 #include <xen/event_channel.h>
 #include <xen/io/console.h>
+#include <xen/sched.h>
 
 /* Console output callback. */
 typedef void (*cons_output_cb)(const char *buf, size_t len);
@@ -24,7 +25,8 @@ void init_pv_console(xencons_interface_t *ring,
 
 void vprintk(const char *fmt, va_list args) __printf(1, 0);
 void printk(const char *fmt, ...) __printf(1, 2);
-size_t pv_console_read(char* buf, size_t size);
+size_t pv_console_read_some(char* buf, size_t size);
+size_t pv_console_read(char *buf, size_t len, size_t num);
 
 #endif /* XTF_CONSOLE_H */
 
