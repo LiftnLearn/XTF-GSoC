@@ -21,11 +21,8 @@ void test_main(void)
     int ret;
     char str[100];
 
-    ret = pv_console_read_some(str, 100);
-    printk("%d %s\n", ret, str);
     for( int i = 0; i < 10; ++i ) {
-        ret = pv_console_read_some(str, 100);
-        //(void) ret;
+        ret = pv_console_read(str, 100);
         printk("Hello from the XTF-server: %d\n", ret);
     }
 
