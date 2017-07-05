@@ -11,21 +11,12 @@
  */
 #include <xtf.h>
 
+#include <arch/apic.h>
 #include <arch/idt.h>
 #include <arch/processor.h>
 #include <arch/segment.h>
 
 const char test_title[] = "XTF Selftests";
-
-static void test_int3_breakpoint(void)
-{
-    printk("Test: int3 breakpoint\n");
-
-    /*
-     * Check that a breakpoint returns normally from the trap handler.
-     */
-    asm volatile ("int3");
-}
 
 static void test_extable(void)
 {
@@ -81,7 +72,8 @@ static bool check_exlog_entry(unsigned int entry, unsigned int cs,
 
 static void test_exlog(void)
 {
-    extern unsigned long label_test_exlog_int3[], label_test_exlog_ud2a[];
+    extern unsigned long exlog_int3[] asm(".Lexlog_int3");
+    extern unsigned long exlog_ud2a[] asm(".Lexlog_ud2a");
 
     printk("Test: Exception Logging\n");
 
@@ -91,19 +83,20 @@ static void test_exlog(void)
     if ( !check_nr_entries(0) )
         goto out;
 
-    asm volatile ("int3; label_test_exlog_int3:");
+    asm volatile ("int3; .Lexlog_int3:"
+                  _ASM_TRAP_OK(.Lexlog_int3));
 
     /* Check that one entry has now been logged. */
     if ( !check_nr_entries(1) ||
-         !check_exlog_entry(0, __KERN_CS, _u(label_test_exlog_int3), X86_EXC_BP, 0) )
+         !check_exlog_entry(0, __KERN_CS, _u(exlog_int3), X86_EXC_BP, 0) )
         goto out;
 
-    asm volatile ("label_test_exlog_ud2a: ud2a; 1:"
-                  _ASM_EXTABLE(label_test_exlog_ud2a, 1b));
+    asm volatile (".Lexlog_ud2a: ud2a; 1:"
+                  _ASM_EXTABLE(.Lexlog_ud2a, 1b));
 
     /* Check that two entries have now been logged. */
     if ( !check_nr_entries(2) ||
-         !check_exlog_entry(1, __KERN_CS, _u(label_test_exlog_ud2a), X86_EXC_UD, 0) )
+         !check_exlog_entry(1, __KERN_CS, _u(exlog_ud2a), X86_EXC_UD, 0) )
         goto out;
 
     xtf_exlog_reset();
@@ -112,7 +105,8 @@ static void test_exlog(void)
     if ( !check_nr_entries(0) )
         goto out;
 
-    asm volatile ("int3");
+    asm volatile ("int3; 1:"
+                  _ASM_TRAP_OK(1b));
 
     /* Check that one entry now exists. */
     if ( !check_nr_entries(1) )
@@ -124,7 +118,8 @@ static void test_exlog(void)
     if ( !check_nr_entries(1) )
         goto out;
 
-    asm volatile ("int3");
+    asm volatile ("int3; 1:"
+                  _ASM_TRAP_OK(1b));
 
     /* Check that the previous breakpoint wasn't logged. */
     if ( !check_nr_entries(1) )
@@ -283,6 +278,22 @@ static void test_custom_idte(void)
         xtf_failure("Fail: Unexpected result %#x\n", res);
 };
 
+static void test_driver_init(void)
+{
+    int rc;
+
+    printk("Test: Driver basic initialisation\n");
+
+    if ( IS_DEFINED(CONFIG_HVM) )
+    {
+        rc = apic_init(APIC_MODE_XAPIC);
+
+        /* Cope with guests which have LAPIC emulation disabled. */
+        if ( rc && rc != -ENODEV )
+            xtf_failure("Fail: apic_init() returned %d\n", rc);
+    }
+}
+
 void test_main(void)
 {
     /*
@@ -302,7 +313,6 @@ void test_main(void)
             write_cr4(cr4);
     }
 
-    test_int3_breakpoint();
     test_extable();
     test_exlog();
     test_exec_user();
@@ -311,6 +321,7 @@ void test_main(void)
     test_unhandled_exception_hook();
     test_extable_handler();
     test_custom_idte();
+    test_driver_init();
 
     xtf_success(NULL);
 }

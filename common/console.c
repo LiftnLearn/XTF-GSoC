@@ -1,9 +1,11 @@
 #include <xtf/types.h>
 #include <xtf/atomic.h>
+#include <xtf/bitops.h>
 #include <xtf/console.h>
 #include <xtf/hypercall.h>
 #include <xtf/lib.h>
 #include <xtf/libc.h>
+#include <xtf/traps.h>
 
 #include <xen/xen.h>
 
@@ -29,31 +31,6 @@ void register_console_callback(cons_output_cb fn)
         panic("Too many console callbacks\n");
 }
 
-static inline int test_bit(int nr, const void *_addr)
-{
-     const char *addr = _addr;
-     return (BITMAP_ENTRY(nr, addr) >> BITMAP_SHIFT(nr)) & 1;
-}
-
-static inline void clear_bit(int nr, void *_addr)
-{
-    char *addr = _addr;
-    BITMAP_ENTRY(nr, addr) &= ~(1UL << BITMAP_SHIFT(nr));
-}
-
-static inline void set_bit(int nr, void *_addr)
-{
-    char *addr = _addr;
-    BITMAP_ENTRY(nr, addr) |= (1UL << BITMAP_SHIFT(nr));
-}
-
-static inline int test_and_clear_bit(int nr, void *addr)
-{
-    int oldbit = test_bit(nr, addr);
-    clear_bit(nr, addr);
-    return oldbit;
-}
-
 /*
  * Write some data into the pv ring, taking care not to overflow the ring.
  */
@@ -73,18 +50,9 @@ static size_t pv_console_write_some(const char *buf, size_t len)
 extern shared_info_t shared_info;
 size_t pv_console_read_some(char *buf, size_t len)
 {
-    struct sched_poll poll;
-
-    memset(&poll, 0, sizeof(poll));
-
-    poll.nr_ports = 1;
-    poll.ports = &pv_evtchn;
-    poll.timeout = 0;
-
-    long ret = -3;
-    while( !test_and_clear_bit(pv_evtchn, shared_info.evtchn_pending) ) {
-        ret = hypercall_sched_op(SCHEDOP_poll, &poll);
-    }
+    while ( !test_and_clear_bit(pv_evtchn, shared_info.evtchn_pending) ||
+            (pv_ring->in_cons == pv_ring->in_prod ) )
+        hypercall_poll(pv_evtchn);
 
     size_t s = 0;
     uint32_t cons = pv_ring->in_cons, prod = LOAD_ACQUIRE(&pv_ring->in_prod);
@@ -94,16 +62,13 @@ size_t pv_console_read_some(char *buf, size_t len)
 
     STORE_RELEASE(&pv_ring->in_cons, cons);
 
-    (void) ret;
-
-    if(s == 0) { return prod; }
     return s;
 }
 
 size_t pv_console_read(char *buf, size_t len, size_t num)
 {
     size_t read = 0;
-    test_and_clear_bit(pv_evtchn, shared_info.evtchn_pending);
+
     while( read < len && read < num ) {
         read += pv_console_read_some(&buf[read], len - read);
     }
@@ -135,30 +100,34 @@ static void pv_console_write(const char *buf, size_t len)
         if ( written < len )
         {
             while ( ACCESS_ONCE(pv_ring->out_cons) == cons )
+            {
+                //if ( !test_and_clear_bit(pv_evtchn,
+                //                         shared_info.evtchn_pending) )
+                //    hypercall_poll(pv_evtchn);
                 hypercall_yield();
+            }
         }
 
     } while ( written < len );
 
     /* Wait for xenconsoled to consume all the data we gave. */
-    //while ( ACCESS_ONCE(pv_ring->out_cons) != pv_ring->out_prod )
-    //    hypercall_yield();
-
-    struct sched_poll poll;
-
-    memset(&poll, 0, sizeof(poll));
-
-    poll.nr_ports = 1;
-    poll.ports = &pv_evtchn;
-    poll.timeout = 0;
-
-    while( !test_and_clear_bit(pv_evtchn, shared_info.evtchn_pending) ) {
-        hypercall_sched_op(SCHEDOP_poll, &poll);
+    while ( ACCESS_ONCE(pv_ring->out_cons) != pv_ring->out_prod )
+    {
+        hypercall_yield();
+        //if ( !test_and_clear_bit(pv_evtchn, shared_info.evtchn_pending) )
+        //    hypercall_poll(pv_evtchn);
     }
+
+    /* what if xenconsoled has already consumed all data before we
+        go into the while loop ? */
+//    test_and_clear_bit(pv_evtchn, shared_info.evtchn_pending);
 }
 
 void init_pv_console(xencons_interface_t *ring, evtchn_port_t port)
 {
+    if ( port >= (sizeof(shared_info.evtchn_pending) * CHAR_BIT) )
+        panic("evtchn %u out of evtchn_pending[] range\n", port);
+
     pv_ring = ring;
     pv_evtchn = port;
     register_console_callback(pv_console_write);

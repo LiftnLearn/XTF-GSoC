@@ -21,13 +21,6 @@ void test_main(void)
     int ret;
     char str[100];
 
-    //for(int j = 0; j < 10; ++j) {
-    //    ret = read(str, 100);
-    //    printk("%u %u\n", ((uint32_t*) str)[0], ((uint32_t*) str)[1]);
-    //    printk("%d Read: %s\n", ret, str+8);
-    //}
-
-//    ret = pv_console_read(str, 100, 0);
     ret = pv_console_read_some(str, 100);
     printk("%d %s\n", ret, str);
     for( int i = 0; i < 10; ++i ) {

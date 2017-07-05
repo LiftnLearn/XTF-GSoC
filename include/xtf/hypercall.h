@@ -67,7 +67,7 @@ static inline long hypercall_memory_op(unsigned int cmd, void *arg)
     return HYPERCALL2(long, __HYPERVISOR_memory_op, cmd, arg);
 }
 
-static inline long hypercall_xen_version(unsigned cmd, void *arg)
+static inline long hypercall_xen_version(unsigned int cmd, void *arg)
 {
     return HYPERCALL2(long, __HYPERVISOR_xen_version, cmd, arg);
 }
@@ -153,6 +153,13 @@ static inline long hypercall_shutdown(unsigned int reason)
 static inline void hypercall_yield(void)
 {
     hypercall_sched_op(SCHEDOP_yield, NULL);
+}
+
+static inline long hypercall_poll(evtchn_port_t port)
+{
+    struct sched_poll poll = { .ports = &port, .nr_ports = 1 };
+
+    return hypercall_sched_op(SCHEDOP_poll, &poll);
 }
 
 static inline int hypercall_register_callback(const xen_callback_register_t *arg)

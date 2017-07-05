@@ -3,6 +3,13 @@
 
 #include <xtf/numbers.h>
 
+#define MSR_APICBASE                    0x0000001b
+#define MSR_APICBASE_BSP                (_AC(1, L) << 8)
+#define MSR_APICBASE_EXTD               (_AC(1, L) << 10)
+#define MSR_APICBASE_ENABLE             (_AC(1, L) << 11)
+
+#define MSR_FEATURE_CONTROL             0x0000003a
+
 #define MSR_PMC(n)                     (0x000000c1 + (n))
 
 #define MSR_INTEL_PLATFORM_INFO         0x000000ce
@@ -25,7 +32,12 @@
 #define MSR_PERF_GLOBAL_STATUS          0x0000038e
 #define MSR_PERF_GLOBAL_CTRL            0x0000038f
 #define MSR_PERF_GLOBAL_OVF_CTRL        0x00000390
+
+#define MSR_VMX_BASIC                   0x00000480
+
 #define MSR_A_PMC(n)                   (0x000004c1 + (n))
+
+#define MSR_X2APIC_REGS                 0x00000800
 
 #define MSR_EFER                        0xc0000080 /* Extended Feature register. */
 #define _EFER_SCE                       0  /* SYSCALL Enable. */
@@ -54,6 +66,34 @@
 #define MSR_GS_BASE                     0xc0000101
 #define MSR_SHADOW_GS_BASE              0xc0000102
 
+#ifndef __ASSEMBLY__
+#include <xtf/types.h>
+
+typedef union msr_feature_control {
+    uint64_t raw;
+    struct {
+        bool lock:1,
+            vmxon_inside_smx:1,
+            vmxon_outside_smx:1;
+    };
+} msr_feature_control_t;
+
+typedef union msr_vmx_basic {
+    uint64_t raw;
+    struct {
+        uint32_t      vmcs_rev_id:31;
+        bool                  mbz:1;
+        uint32_t        vmcs_size:13;
+        uint32_t                 :3;
+        bool          paddr_32bit:1;
+        bool             smm_dual:1;
+        uint32_t    vmcs_mem_type:4;
+        bool     inouts_exit_info:1;
+        bool            true_ctls:1;
+    };
+} msr_vmx_basic_t;
+
+#endif /* !__ASSEMBLY__ */
 #endif /* XFT_X86_MSR_INDEX_H */
 
 /*

@@ -92,6 +92,8 @@ guest breakout.
 
 @subpage test-xsa-213 - multicall: deal with early exit conditions.
 
+@subpage test-xsa-221 - NULL pointer deref in event channel poll.
+
 
 @section index-utility Utilities
 
@@ -100,6 +102,11 @@ guest breakout.
 @subpage test-fep - Test availability of HVM Forced Emulation Prefix.
 
 @subpage test-msr - Print MSR information.
+
+
+@section index-in-development In Development
+
+@subpage test-vvmx - Nested VT-x tests.
 */
 # Placeholder: Merge into the appropriate location above
 @subpage test-edge_count - @todo title
