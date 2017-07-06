@@ -10,38 +10,70 @@
  */
 #include <xtf.h>
 
-#define TRACE_BUFFER_SIZE 500
+#define MAP_SIZE (1 << 16)
+#define TEST_CASE_STR_SIZE 1000
+
+/* Need to have some common understanding of architecture (32/64)
+   between fuzzer and this server */
 
 const char test_title[] = "Test edge_count";
 
+/* distinguish between PC buffer and trace bits */
+uint64_t trace_bits[MAP_SIZE];
+
+char test_case_str[TEST_CASE_STR_SIZE];
+
+/*
+ from afl/docs/technical_details.txt:
+   cur_location = <COMPILE_TIME_RANDOM>;
+   shared_mem[cur_location ^ prev_location]++;
+   prev_location = cur_location >> 1;
+
+    How to do this in practice? Have a hashmap of random values
+    assigned to program counters?
+*/
+void parse_pcs_for_afl()
+{
+        for(long i = 0; i < ans; ++i) {
+            printk("%" PRIx64 "\n", arr[i]);
+        }
+}
+
 void test_main(void)
 {
-//    uint64_t arr[TRACE_BUFFER_SIZE];
-        
     int ret;
-    char str[100];
 
-    for( int i = 0; i < 10; ++i ) {
-        ret = pv_console_read(str, 100);
-        printk("Hello from the XTF-server: %d\n", ret);
+    while( 1 )
+    {
+        /* receive test case */
+        ret = pv_console_read(test_case_str, TEST_CASE_STR_SIZE);
+
+        if(ret <= 0)
+            perror("Couldn't read test case");
+
+        /* start tracing */
+        hypercall_edge_trace(DOMID_SELF, 0, MAP_SIZE, trace_bits);
+    
+        /* execute test case */
+        //TODO: actually use received string, do fancy parsing
+        hypercall_xen_version(0, NULL);
+    
+        /* stop tracing */
+        long ans = hypercall_edge_trace(DOMID_SELF, 1,
+                                        MAP_SIZE, trace_bits);
+    
+        /* convert tracing output for AFL */
+        parse_pcs_for_afl();
+    
+        /* return trace buffer */
+        for(int i = 0 ; i < MAP_SIZE; ++i) {
+           //build a single long string instead of many small ones? /
+            //a couple smaller ones?
+
+        //write my own write() function instead?
+        // -> just make pv_console_write public()
+        printk("%b");
     }
-
-//    printk("%d Start tracing: %ld\n", DOMID_SELF,
-//        hypercall_edge_trace(DOMID_SELF, 0, TRACE_BUFFER_SIZE, arr));
-
-//    hypercall_xen_version(0, NULL);
-
-//   printk("Stop tracing: %ld\n",
- //       hypercall_edge_trace(DOMID_SELF, 1, TRACE_BUFFER_SIZE, arr));
-
-
-//    long ans = hypercall_edge_trace(DOMID_SELF, 1, TRACE_BUFFER_SIZE, arr);
-//
-//    for(long i = 0; i < ans; ++i) {
-//        printk("%" PRIx64 "\n", arr[i]);
-//    }
-//
-//    printk("stop: %ld \n", ans);
 
     xtf_success(NULL);
 }
