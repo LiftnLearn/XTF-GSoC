@@ -7,6 +7,8 @@
 #include <xtf/libc.h>
 #include <xtf/traps.h>
 
+#include <xen/sched.h>
+
 /*
  * Output functions, registered if/when available.
  * Possibilities:
@@ -45,6 +47,24 @@ static size_t pv_console_write_some(const char *buf, size_t len)
     return s;
 }
 
+extern shared_info_t shared_info;
+size_t pv_console_read(char *buf, size_t len)
+{
+    while ( !test_and_clear_bit(pv_evtchn, shared_info.evtchn_pending) ||
+            (pv_ring->in_cons == pv_ring->in_prod ) )
+        hypercall_poll(pv_evtchn);
+
+    size_t s = 0;
+    uint32_t cons = pv_ring->in_cons, prod = LOAD_ACQUIRE(&pv_ring->in_prod);
+
+    while ( (s < len) && (0 < (prod - cons)) )
+        buf[s++] = pv_ring->in[cons++ & (sizeof(pv_ring->in) - 1)];
+
+    STORE_RELEASE(&pv_ring->in_cons, cons);
+
+    return s;
+}
+
 /*
  * Write some data into the pv ring, synchronously waiting for all data to be
  * consumed.
@@ -70,9 +90,7 @@ static void pv_console_write(const char *buf, size_t len)
         {
             while ( ACCESS_ONCE(pv_ring->out_cons) == cons )
             {
-                if ( !test_and_clear_bit(pv_evtchn,
-                                         shared_info.evtchn_pending) )
-                    hypercall_poll(pv_evtchn);
+                hypercall_yield();
             }
         }
 
@@ -81,8 +99,7 @@ static void pv_console_write(const char *buf, size_t len)
     /* Wait for xenconsoled to consume all the data we gave. */
     while ( ACCESS_ONCE(pv_ring->out_cons) != pv_ring->out_prod )
     {
-        if ( !test_and_clear_bit(pv_evtchn, shared_info.evtchn_pending) )
-            hypercall_poll(pv_evtchn);
+        hypercall_yield();
     }
 }
 
