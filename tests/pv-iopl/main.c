@@ -42,6 +42,8 @@
 
 #include <arch/processor.h>
 
+#define TRACE_BUFFER_SIZE 100000
+
 const char test_title[] = "PV IOPL emulation";
 
 bool test_wants_user_mappings = true;
@@ -213,41 +215,44 @@ static const struct test hypercall =
     .should_fault = hypercall_should_fault,
 };
 
-static void nop(void){}
-static void vmassist_set_iopl(unsigned int iopl)
-{
-    /*
-     * All that needs to happen to set iopl is to execute an iret hypercall
-     * with the appropriate iopl set.  Reuse the exec_user infrastructure to
-     * issue the iret, and execute nothing interesting in user context.
-     */
-    exec_user_with_iopl(nop, iopl);
-}
+//static void nop(void){}
+//static void vmassist_set_iopl(unsigned int iopl)
+//{
+//    /*
+//     * All that needs to happen to set iopl is to execute an iret hypercall
+//     * with the appropriate iopl set.  Reuse the exec_user infrastructure to
+//     * issue the iret, and execute nothing interesting in user context.
+//     */
+//    exec_user_with_iopl(nop, iopl);
+//}
 
-static bool vmassist_should_fault(bool user, unsigned int iopl)
-{
-    /*
-     * Kernel has vCPL 0, userspace has vCPL 3.
-     *
-     * Kenrel should never fault, while userspace should only not fault at
-     * iopl 3.
-     */
-    if ( !user )
-        return false;
-
-    return iopl != 3;
-}
+//static bool vmassist_should_fault(bool user, unsigned int iopl)
+//{
+//    /*
+//     * Kernel has vCPL 0, userspace has vCPL 3.
+//     *
+//     * Kenrel should never fault, while userspace should only not fault at
+//     * iopl 3.
+//     */
+//    if ( !user )
+//        return false;
+//
+//    return iopl != 3;
+//}
 
 /** VMASSIT based IOPL interface. */
-static const struct test vmassist =
-{
-    .set_iopl     = vmassist_set_iopl,
-    .should_fault = vmassist_should_fault,
-};
+//static const struct test vmassist =
+//{
+//    .set_iopl     = vmassist_set_iopl,
+//    .should_fault = vmassist_should_fault,
+//};
 
 void test_main(void)
 {
     const struct test *test;
+    uint64_t arr[TRACE_BUFFER_SIZE];
+    printk("start \n");
+    hypercall_edge_trace(DOMID_SELF, 0, TRACE_BUFFER_SIZE, arr);
 
     /**
      * @todo Implement better command line infrastructure, but this will do
@@ -258,20 +263,18 @@ void test_main(void)
         printk("Test: PHYSDEVOP_set_iopl\n");
         test = &hypercall;
     }
-    else if ( !strcmp((char *)start_info->cmd_line, "vmassist") )
-    {
-        if ( hypercall_vm_assist(VMASST_CMD_enable,
-                                 VMASST_TYPE_architectural_iopl) )
-            return xtf_skip("VMASST_TYPE_architectural_iopl not detected\n");
-
-        printk("Test: VMASST_TYPE_architectural_iopl\n");
-        test = &vmassist;
-    }
     else
         return xtf_error("Unknown test to run\n");
 
     /* Run the chosen test. */
     run_test(test);
+    
+    long ans = hypercall_edge_trace(DOMID_SELF, 1, TRACE_BUFFER_SIZE, arr);
+
+    for(long i = 0; i < ans; ++i) {
+        printk("%" PRIx64 "\n", arr[i]);
+    }
+
     xtf_success(NULL);
 }
 

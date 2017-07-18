@@ -14,6 +14,10 @@
 #endif
 
 #define BITS_PER_LONG (BYTES_PER_LONG * 8)
+#define ORDER_LONG (sizeof(unsigned long) == 4 ? 5 : 6)
+
+#define BITMAP_ENTRY(_nr,_bmap) ((_bmap))[(_nr) / 8]
+#define BITMAP_SHIFT(_nr) ((_nr) % 8)
 
 
 #define ARRAY_SIZE(a)    (sizeof(a) / sizeof(*a))

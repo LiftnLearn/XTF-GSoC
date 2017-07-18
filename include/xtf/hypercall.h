@@ -72,6 +72,12 @@ static inline long hypercall_xen_version(unsigned int cmd, void *arg)
     return HYPERCALL2(long, __HYPERVISOR_xen_version, cmd, arg);
 }
 
+static inline long hypercall_edge_trace(domid_t dom, int mode,
+    int size, uint64_t* arg)
+{
+    return HYPERCALL4(long, __HYPERVISOR_edge_trace, dom, mode, size, arg);
+}
+
 /*
  * This hypercall is misnamed in the Xen ABI, and actually operates on a
  * linear address, not a virtual address.

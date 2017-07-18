@@ -50,12 +50,14 @@ static size_t pv_console_write_some(const char *buf, size_t len)
 extern shared_info_t shared_info;
 size_t pv_console_read(char *buf, size_t len)
 {
+    size_t s = 0;
+    uint32_t cons, prod;
+
     while ( !test_and_clear_bit(pv_evtchn, shared_info.evtchn_pending) ||
-            (pv_ring->in_cons == pv_ring->in_prod ) )
+            (pv_ring->in_cons == pv_ring->in_prod) )
         hypercall_poll(pv_evtchn);
 
-    size_t s = 0;
-    uint32_t cons = pv_ring->in_cons, prod = LOAD_ACQUIRE(&pv_ring->in_prod);
+    cons = pv_ring->in_cons, prod = LOAD_ACQUIRE(&pv_ring->in_prod);
 
     while ( (s < len) && (0 < (prod - cons)) )
         buf[s++] = pv_ring->in[cons++ & (sizeof(pv_ring->in) - 1)];
