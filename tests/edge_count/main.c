@@ -40,7 +40,7 @@ void test_main(void)
             xtf_failure("Couldn't read from AFL");
 
         long arg1, arg2, arg3, arg4;
-//        long hypercall_num = *(long*) test_case_str; //TODO: or is this an int?
+        long hypercall_num = *(long*) test_case_str; //TODO: or is this an int?
         arg1 = *(((long*) test_case_str) + 1);
         arg2 = *(((long*) test_case_str) + 2);
         arg3 = *(((long*) test_case_str) + 3);
@@ -49,10 +49,66 @@ void test_main(void)
         //TODO: actually use received string, do fancy parsing
         /* execute test case */
         //hypercall_xen_version(0, NULL);
-        (void)HYPERCALL4(long, __HYPERVISOR_mmu_update, arg1, arg2, arg3, arg4);
         //I suppose we don't care about the return value?
+
+        switch(hypercall_num)
+        {
+            case __HYPERVISOR_set_trap_table:
+                (void) HYPERCALL4(long, __HYPERVISOR_set_trap_table, arg1, arg2, arg3, arg4);
+                break;
+            case __HYPERVISOR_mmu_update:
+                (void) HYPERCALL4(long, __HYPERVISOR_mmu_update, arg1, arg2, arg3, arg4);
+                break;
+            case __HYPERVISOR_set_gdt:
+                (void) HYPERCALL4(long, __HYPERVISOR_set_gdt, arg1, arg2, arg3, arg4);
+                break;
+            case __HYPERVISOR_stack_switch:
+                (void) HYPERCALL4(long, __HYPERVISOR_stack_switch, arg1, arg2, arg3, arg4);
+                break;
+            case __HYPERVISOR_set_callbacks:
+                (void) HYPERCALL4(long, __HYPERVISOR_set_callbacks, arg1, arg2, arg3, arg4);
+                break;
+            case __HYPERVISOR_fpu_taskswitch:
+            case __HYPERVISOR_sched_op_compat:
+            case __HYPERVISOR_platform_op:
+            case __HYPERVISOR_set_debugreg:
+            case __HYPERVISOR_get_debugreg:
+            case __HYPERVISOR_update_descriptor:
+            case __HYPERVISOR_memory_op:
+            case __HYPERVISOR_multicall:
+            case __HYPERVISOR_update_va_mapping:
+            case __HYPERVISOR_set_timer_op:
+            case __HYPERVISOR_event_channel_op_compat:
+            case __HYPERVISOR_xen_version:
+                (void) HYPERCALL4(long, __HYPERVISOR_xen_version, arg1, arg2, arg3, arg4);
+            case __HYPERVISOR_console_io:
+            case __HYPERVISOR_physdev_op_compat:
+            case __HYPERVISOR_grant_table_op:
+            case __HYPERVISOR_vm_assist:
+            case __HYPERVISOR_update_va_mapping_otherdomain:
+            case __HYPERVISOR_iret:
+            case __HYPERVISOR_vcpu_op:
+            case __HYPERVISOR_set_segment_base:
+            case __HYPERVISOR_mmuext_op:
+            case __HYPERVISOR_xsm_op:
+            case __HYPERVISOR_nmi_op:
+            case __HYPERVISOR_sched_op:
+            case __HYPERVISOR_callback_op:
+            case __HYPERVISOR_xenoprof_op:
+            case __HYPERVISOR_event_channel_op:
+            case __HYPERVISOR_physdev_op:
+            case __HYPERVISOR_hvm_op:
+            case __HYPERVISOR_sysctl:
+            case __HYPERVISOR_domctl:
+            case __HYPERVISOR_kexec_op:
+            case __HYPERVISOR_tmem_op:
+            case __HYPERVISOR_xc_reserved_op:
+            case __HYPERVISOR_xenpmu_op:
+            default:
+                (void) HYPERCALL4(long, __HYPERVISOR_xenpmu_op, arg1, arg2, arg3, arg4);
+        }
     
-        printk("Just finished executing the test case!\n");
+        printk("%ld %ld %ld %ld %ld", hypercall_num, arg1, arg2, arg3, arg4);
     }
 
     xtf_success(NULL);
