@@ -21,11 +21,11 @@ void test_main(void)
     printk("%d Start tracing: %ld\n", DOMID_SELF,
         hypercall_edge_trace(DOMID_SELF, 0, TRACE_BUFFER_SIZE, arr));
 
-//    hypercall_xen_version(0, NULL);
+    hypercall_xen_version(0, NULL);
 
 //   printk("Stop tracing: %ld\n",
  //       hypercall_edge_trace(DOMID_SELF, 1, TRACE_BUFFER_SIZE, arr));
-
+    (void) HYPERCALL4(long, __HYPERVISOR_xen_version, 0, NULL, 2345235, 153245);
 
     long ans = hypercall_edge_trace(DOMID_SELF, 1, TRACE_BUFFER_SIZE, arr);
 
