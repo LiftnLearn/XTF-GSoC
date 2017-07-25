@@ -34,23 +34,22 @@ void test_main(void)
     while( 1 )
     {
         /* receive test case */
+        memset(test_case_str, 0, TEST_CASE_STR_SIZE);
         ret = pv_console_read_some(test_case_str, TEST_CASE_STR_SIZE);
 
         if(ret <= 0)
             xtf_failure("Couldn't read from AFL");
 
         long arg1, arg2, arg3, arg4;
-        long hypercall_num = *(long*) test_case_str; //TODO: or is this an int?
+        long hypercall_num = (*(long*) test_case_str) % 50; //TODO: or is this an int?
         arg1 = *(((long*) test_case_str) + 1);
         arg2 = *(((long*) test_case_str) + 2);
         arg3 = *(((long*) test_case_str) + 3);
         arg4 = *(((long*) test_case_str) + 4);
 
-        //TODO: actually use received string, do fancy parsing
-        /* execute test case */
-        //hypercall_xen_version(0, NULL);
         //I suppose we don't care about the return value?
 
+        /* execute test case */
         switch(hypercall_num)
         {
             case __HYPERVISOR_set_trap_table:
@@ -69,46 +68,113 @@ void test_main(void)
                 (void) HYPERCALL4(long, __HYPERVISOR_set_callbacks, arg1, arg2, arg3, arg4);
                 break;
             case __HYPERVISOR_fpu_taskswitch:
+                (void) HYPERCALL4(long, __HYPERVISOR_fpu_taskswitch, arg1, arg2, arg3, arg4);
+                break;
             case __HYPERVISOR_sched_op_compat:
+                (void) HYPERCALL4(long, __HYPERVISOR_sched_op_compat, arg1, arg2, arg3, arg4);
+                break;
             case __HYPERVISOR_platform_op:
+                (void) HYPERCALL4(long, __HYPERVISOR_platform_op, arg1, arg2, arg3, arg4);
+                break;
             case __HYPERVISOR_set_debugreg:
+                (void) HYPERCALL4(long, __HYPERVISOR_set_debugreg, arg1, arg2, arg3, arg4);
+                break;
             case __HYPERVISOR_get_debugreg:
+                (void) HYPERCALL4(long, __HYPERVISOR_get_debugreg, arg1, arg2, arg3, arg4);
+                break;
             case __HYPERVISOR_update_descriptor:
+                (void) HYPERCALL4(long, __HYPERVISOR_update_descriptor, arg1, arg2, arg3, arg4);
+                break;
             case __HYPERVISOR_memory_op:
+                (void) HYPERCALL4(long, __HYPERVISOR_memory_op, arg1, arg2, arg3, arg4);
+                break;
             case __HYPERVISOR_multicall:
+                (void) HYPERCALL4(long, __HYPERVISOR_multicall, arg1, arg2, arg3, arg4);
+                break;
             case __HYPERVISOR_update_va_mapping:
+                (void) HYPERCALL4(long, __HYPERVISOR_update_va_mapping, arg1, arg2, arg3, arg4);
+                break;
             case __HYPERVISOR_set_timer_op:
+                (void) HYPERCALL4(long, __HYPERVISOR_set_timer_op, arg1, arg2, arg3, arg4);
+                break;
             case __HYPERVISOR_event_channel_op_compat:
+                (void) HYPERCALL4(long, __HYPERVISOR_event_channel_op_compat, arg1, arg2, arg3, arg4);
+                break;
             case __HYPERVISOR_xen_version:
                 (void) HYPERCALL4(long, __HYPERVISOR_xen_version, arg1, arg2, arg3, arg4);
+                break;
             case __HYPERVISOR_console_io:
             case __HYPERVISOR_physdev_op_compat:
+                (void) HYPERCALL4(long, __HYPERVISOR_physdev_op_compat, arg1, arg2, arg3, arg4);
+                break;
             case __HYPERVISOR_grant_table_op:
+                (void) HYPERCALL4(long, __HYPERVISOR_grant_table_op, arg1, arg2, arg3, arg4);
+                break;
             case __HYPERVISOR_vm_assist:
+                (void) HYPERCALL4(long, __HYPERVISOR_vm_assist, arg1, arg2, arg3, arg4);
+                break;
             case __HYPERVISOR_update_va_mapping_otherdomain:
+                (void) HYPERCALL4(long, __HYPERVISOR_update_va_mapping_otherdomain, arg1, arg2, arg3, arg4);
+                break;
             case __HYPERVISOR_iret:
+                (void) HYPERCALL4(long, __HYPERVISOR_iret, arg1, arg2, arg3, arg4);
+                break;
             case __HYPERVISOR_vcpu_op:
+                (void) HYPERCALL4(long, __HYPERVISOR_vcpu_op, arg1, arg2, arg3, arg4);
+                break;
             case __HYPERVISOR_set_segment_base:
+                (void) HYPERCALL4(long, __HYPERVISOR_vcpu_op, arg1, arg2, arg3, arg4);
+                break;
             case __HYPERVISOR_mmuext_op:
-            case __HYPERVISOR_xsm_op:
+                 (void) HYPERCALL4(long, __HYPERVISOR_mmuext_op, arg1, arg2, arg3, arg4);
+                break;
+           case __HYPERVISOR_xsm_op:
+                (void) HYPERCALL4(long, __HYPERVISOR_xsm_op, arg1, arg2, arg3, arg4);
+                break;
             case __HYPERVISOR_nmi_op:
+                (void) HYPERCALL4(long, __HYPERVISOR_nmi_op, arg1, arg2, arg3, arg4);
+                break;
             case __HYPERVISOR_sched_op:
+                (void) HYPERCALL4(long, __HYPERVISOR_sched_op, arg1, arg2, arg3, arg4);
+                break;
             case __HYPERVISOR_callback_op:
+                (void) HYPERCALL4(long, __HYPERVISOR_callback_op, arg1, arg2, arg3, arg4);
+                break;
             case __HYPERVISOR_xenoprof_op:
+                (void) HYPERCALL4(long, __HYPERVISOR_xenoprof_op, arg1, arg2, arg3, arg4);
+                break;
             case __HYPERVISOR_event_channel_op:
+                (void) HYPERCALL4(long, __HYPERVISOR_event_channel_op, arg1, arg2, arg3, arg4);
+                break;
             case __HYPERVISOR_physdev_op:
+                (void) HYPERCALL4(long, __HYPERVISOR_physdev_op, arg1, arg2, arg3, arg4);
+                break;
             case __HYPERVISOR_hvm_op:
+                (void) HYPERCALL4(long, __HYPERVISOR_hvm_op, arg1, arg2, arg3, arg4);
+                break;
             case __HYPERVISOR_sysctl:
+                (void) HYPERCALL4(long, __HYPERVISOR_sysctl, arg1, arg2, arg3, arg4);
+                break;
             case __HYPERVISOR_domctl:
+                (void) HYPERCALL4(long, __HYPERVISOR_domctl, arg1, arg2, arg3, arg4);
+                break;
             case __HYPERVISOR_kexec_op:
+                (void) HYPERCALL4(long, __HYPERVISOR_kexec_op, arg1, arg2, arg3, arg4);
+                break;
             case __HYPERVISOR_tmem_op:
+                (void) HYPERCALL4(long, __HYPERVISOR_tmem_op, arg1, arg2, arg3, arg4);
+                break;
             case __HYPERVISOR_xc_reserved_op:
+                (void) HYPERCALL4(long, __HYPERVISOR_xc_reserved_op, arg1, arg2, arg3, arg4);
+                break;
             case __HYPERVISOR_xenpmu_op:
-            default:
                 (void) HYPERCALL4(long, __HYPERVISOR_xenpmu_op, arg1, arg2, arg3, arg4);
+                break;
+            default:
+                (void) HYPERCALL4(long, __HYPERVISOR_memory_op, arg1, arg2, arg3, arg4);
         }
     
-        printk("%ld %ld %ld %ld %ld", hypercall_num, arg1, arg2, arg3, arg4);
+        printk("%li, ret: %d, %li %li %ld %ld %ld", sizeof(long), ret, hypercall_num, arg1, arg2, arg3, arg4);
     }
 
     xtf_success(NULL);
