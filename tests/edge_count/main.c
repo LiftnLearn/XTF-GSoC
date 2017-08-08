@@ -37,7 +37,12 @@ void test_main(void)
         arg3 = *(((long*) test_case_str) + 3);
         arg4 = *(((long*) test_case_str) + 4);
 
-        printk("%li %li %ld %ld %ld\n", hypercall_num, arg1, arg2, arg3, arg4);
+        (void) hypercall_num;
+        (void) arg3;
+        (void) arg4;
+
+        //printk("%li %li %ld %ld %ld\n", hypercall_num, arg1, arg2, arg3, arg4);
+//        printk("message\n");
 
         /* annotated mostly according to xen/xen/include/xen/hypercall.h */
 
@@ -96,7 +101,8 @@ void test_main(void)
             case __HYPERVISOR_physdev_op_compat:
                 break;
             case __HYPERVISOR_grant_table_op:
-                (void) HYPERCALL3(long, __HYPERVISOR_grant_table_op, arg1, POINTER(arg2), arg3);
+//                (void) HYPERCALL3(long, __HYPERVISOR_grant_table_op, arg1, POINTER(arg2), arg3);
+//    HYPERCALL3(long, __HYPERVISOR_grant_table_op, 0, POINTER(63974), 1945555047933877647);
                 break;
             case __HYPERVISOR_vm_assist:
                 (void) HYPERCALL2(long, __HYPERVISOR_vm_assist, arg1, arg2);

@@ -144,16 +144,19 @@ static inline long hypercall_shutdown(unsigned int reason)
     return hypercall_sched_op(SCHEDOP_shutdown, &reason);
 }
 
+/* modification so that console doesn't influence tracing */
 static inline void hypercall_yield(void)
 {
-    hypercall_sched_op(SCHEDOP_yield, NULL);
+//    hypercall_sched_op(SCHEDOP_yield, NULL);
+    return;
 }
 
 static inline long hypercall_poll(evtchn_port_t port)
 {
-    struct sched_poll poll = { .ports = &port, .nr_ports = 1 };
+//    struct sched_poll poll = { .ports = &port, .nr_ports = 1 };
 
-    return hypercall_sched_op(SCHEDOP_poll, &poll);
+//    return hypercall_sched_op(SCHEDOP_poll, &poll);
+    return 0;
 }
 
 static inline int hypercall_register_callback(const xen_callback_register_t *arg)
