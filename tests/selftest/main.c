@@ -18,6 +18,29 @@
 
 const char test_title[] = "XTF Selftests";
 
+static void test_xenstore(void)
+{
+    printk("Test: Xenstore read\n");
+
+    const char *domid_str = xenstore_read("domid");
+
+    if ( !domid_str )
+        return xtf_failure("Fail: No domid value returned\n");
+
+    if ( domid_str[0] == '\0' )
+        return xtf_failure("Fail: domid value empty\n");
+
+    unsigned int i;
+    for ( i = 0; domid_str[i]; ++i )
+    {
+        if ( domid_str[i] < '0' || domid_str[i] > '9' )
+            return xtf_failure("Fail: unexpected domid value '%s'\n",
+                               domid_str);
+    }
+
+    printk("  Found domid %s\n", domid_str);
+}
+
 static void test_extable(void)
 {
     printk("Test: Exception Table\n");
@@ -212,8 +235,8 @@ static void test_unhandled_exception_hook(void)
 }
 
 static bool test_extable_handler_handler_run;
-static bool __used test_extable_handler_handler(struct cpu_regs *regs,
-                                                const struct extable_entry *ex)
+static bool test_extable_handler_handler(struct cpu_regs *regs,
+                                         const struct extable_entry *ex)
 {
     test_extable_handler_handler_run = true;
     regs->ip = ex->fixup;
@@ -226,7 +249,8 @@ static void test_extable_handler(void)
 
     asm volatile ("1: ud2a; 2:"
                   _ASM_EXTABLE_HANDLER(1b, 2b,
-                                       test_extable_handler_handler));
+                                       test_extable_handler_handler)
+                  :: "X" (test_extable_handler_handler));
 
     if ( !test_extable_handler_handler_run )
         xtf_failure("Fail: Custom handler didn't run\n");
@@ -292,6 +316,14 @@ static void test_driver_init(void)
         if ( rc && rc != -ENODEV )
             xtf_failure("Fail: apic_init() returned %d\n", rc);
     }
+
+    rc = xtf_init_grant_table(1);
+    if ( rc )
+        xtf_failure("Fail: xtf_init_grant_table(1) returned %d\n", rc);
+
+    rc = xtf_init_grant_table(2);
+    if ( rc && rc != -ENODEV )
+        xtf_failure("Fail: xtf_init_grant_table(2) returned %d\n", rc);
 }
 
 void test_main(void)
@@ -313,6 +345,7 @@ void test_main(void)
             write_cr4(cr4);
     }
 
+    test_xenstore();
     test_extable();
     test_exlog();
     test_exec_user();

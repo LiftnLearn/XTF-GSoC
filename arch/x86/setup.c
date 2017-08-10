@@ -2,6 +2,7 @@
 #include <xtf/hypercall.h>
 #include <xtf/extable.h>
 #include <xtf/report.h>
+#include <xtf/xenbus.h>
 
 #include <arch/cpuid.h>
 #include <arch/desc.h>
@@ -152,10 +153,12 @@ static void setup_pv_console(void)
     xencons_interface_t *cons_ring;
     evtchn_port_t cons_evtchn;
 
-#if defined(CONFIG_PV)
-    cons_ring = mfn_to_virt(start_info->console.domU.mfn);
-    cons_evtchn = start_info->console.domU.evtchn;
-#elif defined(CONFIG_HVM)
+    if ( IS_DEFINED(CONFIG_PV) )
+    {
+        cons_ring = mfn_to_virt(start_info->console.domU.mfn);
+        cons_evtchn = start_info->console.domU.evtchn;
+    }
+    else /* HVM */
     {
         uint64_t raw_pfn, raw_evtchn;
 
@@ -166,9 +169,38 @@ static void setup_pv_console(void)
         cons_ring = pfn_to_virt(raw_pfn);
         cons_evtchn = raw_evtchn;
     }
-#endif
 
     init_pv_console(cons_ring, cons_evtchn);
+}
+
+static void setup_xenbus(void)
+{
+    xenbus_interface_t *xb_ring;
+    evtchn_port_t xb_port;
+
+    if ( IS_DEFINED(CONFIG_PV) )
+    {
+        xb_ring = mfn_to_virt(start_info->store_mfn);
+        xb_port = start_info->store_evtchn;
+    }
+    else /* HVM */
+    {
+        uint64_t raw_pfn, raw_evtchn;
+        int rc;
+
+        rc = hvm_get_param(HVM_PARAM_STORE_PFN, &raw_pfn);
+        if ( rc )
+            panic("Failed to get XenStore PFN: %d\n", rc);
+
+        rc = hvm_get_param(HVM_PARAM_STORE_EVTCHN, &raw_evtchn);
+        if ( rc )
+            panic("Failed to get XenStore evtchn: %d\n", rc);
+
+        xb_ring = pfn_to_virt(raw_pfn);
+        xb_port = raw_evtchn;
+    }
+
+    init_xenbus(xb_ring, xb_port);
 }
 
 static void map_shared_info(void)
@@ -225,6 +257,7 @@ void arch_setup(void)
 
     setup_pv_console();
     map_shared_info();
+    setup_xenbus();
 }
 
 /*
