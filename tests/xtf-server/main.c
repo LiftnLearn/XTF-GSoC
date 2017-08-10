@@ -19,6 +19,8 @@
  * Further improvements here would be to provide valid
  * buffers, etc. and encode more information about hypercalls.
  *
+ * Hypercalls annotated mostly according to xen/xen/include/xen/hypercall.h
+ *
  * @see tests/xtf-server/main.c
  */
 #include <xtf.h>
@@ -46,14 +48,12 @@ void test_main(void)
         if(ret <= 0)
             xtf_failure("Couldn't read from AFL");
 
-        long arg1, arg2, arg3, arg4;
-        unsigned long hypercall_num = (*(long*) test_case_str) % 41;
+        long hypercall_num, arg1, arg2, arg3, arg4;
+        hypercall_num = (*(long*) test_case_str) % 41;
         arg1 = *(((long*) test_case_str) + 1);
         arg2 = *(((long*) test_case_str) + 2);
         arg3 = *(((long*) test_case_str) + 3);
         arg4 = *(((long*) test_case_str) + 4);
-
-        /* hypercalls annotated mostly according to xen/xen/include/xen/hypercall.h */
 
         /* execute test case */
         switch(hypercall_num)
@@ -94,8 +94,6 @@ void test_main(void)
             case __HYPERVISOR_multicall:
                 break;
             case __HYPERVISOR_update_va_mapping:
-//                (void) HYPERCALL4(long, __HYPERVISOR_update_va_mapping, arg1, arg2, arg3, arg4);
-//                HYPERCALL4(long, 14, 1054551, 73014444032, 1114129, 9007207844680008);
                 break;
             case __HYPERVISOR_set_timer_op:
                 break;
@@ -103,15 +101,12 @@ void test_main(void)
                 break;
             case __HYPERVISOR_xen_version:
                 (void) HYPERCALL2(long, __HYPERVISOR_xen_version, arg1, POINTER(arg2));
-//              HYPERCALL2(long, __HYPERVISOR_xen_version, XENVER_changeset, NULL); (overwriting code .text segment)
                 break;
             case __HYPERVISOR_console_io:
                 break;
             case __HYPERVISOR_physdev_op_compat:
                 break;
             case __HYPERVISOR_grant_table_op:
-//                (void) HYPERCALL3(long, __HYPERVISOR_grant_table_op, arg1, POINTER(arg2), arg3);
-//    HYPERCALL3(long, __HYPERVISOR_grant_table_op, 0, POINTER(63974), 1945555047933877647);
                 break;
             case __HYPERVISOR_vm_assist:
                 (void) HYPERCALL2(long, __HYPERVISOR_vm_assist, arg1, arg2);
@@ -122,10 +117,8 @@ void test_main(void)
             case __HYPERVISOR_iret:
                 break;
             case __HYPERVISOR_vcpu_op:
-//                (void) HYPERCALL4(long, __HYPERVISOR_vcpu_op, arg1, arg2, arg3, arg4);
                 break;
             case __HYPERVISOR_set_segment_base:
-//                (void) HYPERCALL4(long, __HYPERVISOR_set_segment_base, arg1, arg2, arg3, arg4);
                 break;
             case __HYPERVISOR_mmuext_op:
                  (void) HYPERCALL4(long, __HYPERVISOR_mmuext_op, arg1, arg2, arg3, arg4);
