@@ -112,5 +112,3 @@ guest breakout.
 
 @subpage test-vvmx - Nested VT-x tests.
 */
-# Placeholder: Merge into the appropriate location above
-@subpage test-mk_hcall - @todo title

@@ -1,12 +1,25 @@
 /**
- * @file tests/edge_count/main.c
- * @ref test-edge_count
+ * @file tests/xtf-server/main.c
+ * @ref test-xtf-server
  *
- * @page test-edge_count edge_count
+ * @page test-xtf-server xtf-server
  *
- * XTF-server
+ * This is the XTF-server for fuzzing
+ * the hypervisor. It waits for input
+ * via the console (thus in form of a
+ * string) and parses it into a test case.
  *
- * @see tests/edge_count/main.c
+ * There are some information encoded about
+ * the hypercalls, i.e. some are excluded as
+ * they might not return for certain arguments
+ * or as they might stop the domain. Also, the
+ * pointer macro is used to prevent the overwriting
+ * of the code segments when passing buffers into Xen.
+ *
+ * Further improvements here would be to provide valid
+ * buffers, etc. and encode more information about hypercalls.
+ *
+ * @see tests/xtf-server/main.c
  */
 #include <xtf.h>
 
@@ -16,7 +29,7 @@
    buffers to Xen */
 #define POINTER(x) ((x >= 0xFFF00 && x < 0x110000) ? 0 : x)
 
-const char test_title[] = "Test edge_count";
+const char test_title[] = "Test xtf-server";
 
 char test_case_str[TEST_CASE_STR_SIZE];
 

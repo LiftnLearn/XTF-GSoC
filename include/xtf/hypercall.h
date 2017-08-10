@@ -151,9 +151,10 @@ static inline long hypercall_shutdown(unsigned int reason)
     return hypercall_sched_op(SCHEDOP_shutdown, &reason);
 }
 
-/* modification so that console doesn't influence tracing */
 static inline void hypercall_yield(void)
 {
+/* comment scheduling hypercalls out so that console hypercalls don't
+   influence tracing determinism */
 //    hypercall_sched_op(SCHEDOP_yield, NULL);
     return;
 }
