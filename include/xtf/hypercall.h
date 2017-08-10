@@ -151,19 +151,15 @@ static inline long hypercall_shutdown(unsigned int reason)
     return hypercall_sched_op(SCHEDOP_shutdown, &reason);
 }
 
+/* hypercall_yield and hypercall_poll are dummies so that printing to
+   console doesn't interfere with tracing determinism */
 static inline void hypercall_yield(void)
 {
-/* comment scheduling hypercalls out so that console hypercalls don't
-   influence tracing determinism */
-//    hypercall_sched_op(SCHEDOP_yield, NULL);
     return;
 }
 
 static inline long hypercall_poll(evtchn_port_t port)
 {
-//    struct sched_poll poll = { .ports = &port, .nr_ports = 1 };
-
-//    return hypercall_sched_op(SCHEDOP_poll, &poll);
     return 0;
 }
 
